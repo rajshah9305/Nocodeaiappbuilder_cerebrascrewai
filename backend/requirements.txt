@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+crewai
+cerebras_cloud_sdk
+pydantic-settings
+httpx
