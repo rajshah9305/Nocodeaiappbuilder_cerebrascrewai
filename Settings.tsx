@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
-import { User, Mail, Building, Briefcase, Save, Loader2 } from 'lucide-react'
+import { User, Mail, Building, Briefcase, Save, Loader2, Key } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEncryptionKey } from '@/contexts/EncryptionKeyContext'
 
 export function Settings() {
   const { user } = useAuth()
+  const { encryptionKey, setEncryptionKey } = useEncryptionKey()
+  const [newEncryptionKey, setNewEncryptionKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [formData, setFormData] = useState({
@@ -163,6 +166,60 @@ export function Settings() {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+            <Key className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Encryption Key</h2>
+            <p className="text-gray-600">Manage your encryption key</p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Current Encryption Key
+            </label>
+            <input
+              type="password"
+              value={encryptionKey || ''}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+              disabled
+            />
+             <p className="text-xs text-gray-500 mt-1">This key is stored in your browser and is used to encrypt your API keys.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              New Encryption Key
+            </label>
+            <input
+              type="password"
+              value={newEncryptionKey}
+              onChange={(e) => setNewEncryptionKey(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter new key (min. 8 characters)"
+            />
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                if (newEncryptionKey.length < 8) {
+                  alert('Encryption key must be at least 8 characters long.');
+                  return;
+                }
+                setEncryptionKey(newEncryptionKey)
+                setNewEncryptionKey('')
+                alert('Encryption key updated successfully!')
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Update Key
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Additional Settings Sections */}

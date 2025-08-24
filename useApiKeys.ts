@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEncryptionKey } from '@/contexts/EncryptionKeyContext'
+import { encrypt } from '@/lib/crypto'
 import type { ApiKey } from '@/lib/supabase'
 
 interface AddApiKeyData {
@@ -11,6 +13,7 @@ interface AddApiKeyData {
 
 export function useApiKeys() {
   const { user } = useAuth()
+  const { encryptionKey } = useEncryptionKey()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -18,16 +21,21 @@ export function useApiKeys() {
     if (!user) {
       throw new Error('User not authenticated')
     }
+    if (!encryptionKey) {
+      throw new Error('Encryption key is not set.')
+    }
 
     setLoading(true)
     setError(null)
 
     try {
+      const encryptedApiKey = encrypt(data.apiKey, encryptionKey)
+
       const { data: result, error } = await supabase.functions.invoke('api-key-management', {
         body: {
           action: 'add',
           provider: data.provider,
-          apiKey: data.apiKey,
+          apiKey: encryptedApiKey,
           keyName: data.keyName
         }
       })

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Key, Trash2, Eye, EyeOff, Check, X, Loader2 } from 'lucide-react'
 import { useApiKeys } from '@/hooks/useApiKeys'
+import { useEncryptionKey } from '@/contexts/EncryptionKeyContext'
+import { decrypt } from '@/lib/crypto'
 import type { ApiKey } from '@/lib/supabase'
 
 const AI_PROVIDERS = [
@@ -13,6 +15,7 @@ const AI_PROVIDERS = [
 
 export function ApiKeyManager() {
   const { addApiKey, deleteApiKey, listApiKeys, loading } = useApiKeys()
+  const { encryptionKey } = useEncryptionKey()
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
@@ -233,7 +236,17 @@ export function ApiKeyManager() {
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">API Key:</p>
                   <p className="font-mono text-sm text-gray-900 break-all">
-                    {atob(key.encrypted_key)}
+                    {(() => {
+                      if (!encryptionKey) {
+                        return 'Encryption key not set. Please refresh.';
+                      }
+                      try {
+                        return decrypt(key.encrypted_key, encryptionKey);
+                      } catch (e) {
+                        console.error('Failed to decrypt key:', e);
+                        return 'Could not decrypt key. The encryption key may be incorrect.';
+                      }
+                    })()}
                   </p>
                 </div>
               )}
